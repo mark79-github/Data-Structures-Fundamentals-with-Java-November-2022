@@ -8,9 +8,9 @@ import java.util.function.Consumer;
 
 public class BinaryTree<E> implements AbstractBinaryTree<E> {
 
-    E key;
-    final BinaryTree<E> right;
-    final BinaryTree<E> left;
+    private E key;
+    private final BinaryTree<E> right;
+    private final BinaryTree<E> left;
 
     public BinaryTree(E key, BinaryTree<E> right, BinaryTree<E> left) {
         this.key = key;
