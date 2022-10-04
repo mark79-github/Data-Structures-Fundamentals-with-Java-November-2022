@@ -233,18 +233,6 @@ public class VaccOpsTests {
         this.vaccOps.changeDoctor(d1, d4, p5);
     }
 
-//    @Test(expected = IllegalArgumentException.class)
-//    public void testChangeDoctorShouldThrowExceptionWhenPatientIsNot_FirstDoctorPatient() {
-//        this.vaccOps.addDoctor(d1);
-//        this.vaccOps.addDoctor(d2);
-//        this.vaccOps.addDoctor(d3);
-//        this.vaccOps.addPatient(d1, p1);
-//        this.vaccOps.addPatient(d1, p2);
-//        this.vaccOps.addPatient(d3, p3);
-//        this.vaccOps.addPatient(d3, p4);
-//        this.vaccOps.changeDoctor(d1, d2, p3);
-//    }
-
     @Test
     public void testGetDoctorByPopularityOnEmptyStorage() {
         Collection<Doctor> doctors = this.vaccOps.getDoctorsByPopularity(5);

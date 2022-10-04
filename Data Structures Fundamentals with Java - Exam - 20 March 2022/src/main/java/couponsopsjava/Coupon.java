@@ -5,7 +5,6 @@ public class Coupon {
     public final String code;
     public final int discountPercentage;
     public final int validity;
-	public String website;
 
     public Coupon(String code, int discountPercentage, int validity) {
         this.code = code;
@@ -23,10 +22,6 @@ public class Coupon {
 
     public int getValidity() {
         return validity;
-    }
-
-    public String getWebsite() {
-        return website;
     }
 
     @Override
