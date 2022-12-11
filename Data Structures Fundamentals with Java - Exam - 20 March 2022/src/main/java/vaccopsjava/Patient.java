@@ -6,6 +6,7 @@ public class Patient {
     public final int height;
     public final int age;
     public final String town;
+    private Doctor doctor;
 
     public Patient(String name, int height, int age, String town) {
         this.name = name;
@@ -28,6 +29,14 @@ public class Patient {
 
     public String getTown() {
         return town;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
     }
 
     @Override

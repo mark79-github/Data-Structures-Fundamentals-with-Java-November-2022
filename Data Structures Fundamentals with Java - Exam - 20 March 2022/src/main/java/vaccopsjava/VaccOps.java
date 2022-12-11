@@ -5,134 +5,120 @@ import java.util.stream.Collectors;
 
 public class VaccOps implements IVaccOps {
 
-    private final Map<Doctor, List<Patient>> doctors;
-    private final List<Patient> patients;
+    private final Map<String, Doctor> doctors;
+    private final Map<String, Patient> patients;
 
     public VaccOps() {
         this.doctors = new HashMap<>();
-        this.patients = new ArrayList<>();
+        this.patients = new HashMap<>();
     }
 
     public void addDoctor(Doctor d) {
-        if (this.doctors.containsKey(d)) {
+        if (this.exist(d)) {
             throw new IllegalArgumentException();
         }
-        this.doctors.put(d, new ArrayList<>());
+        this.doctors.put(d.name, d);
     }
 
     public void addPatient(Doctor d, Patient p) {
-        if (!this.doctors.containsKey(d)) {
+        if (!this.exist(d)) {
             throw new IllegalArgumentException();
         }
-        if (this.patients.contains(p)) {
+        if (this.exist(p)) {
             throw new IllegalArgumentException();
         }
-        List<Patient> patientList = this.doctors.get(d);
-        patientList.add(p);
-        this.patients.add(p);
+        this.doctors.get(d.name).addPatient(p);
+        p.setDoctor(d);
+        this.patients.put(p.name, p);
     }
 
     public Collection<Doctor> getDoctors() {
-        return this.doctors.keySet();
+        return this.doctors.values();
     }
 
     public Collection<Patient> getPatients() {
-        return this.patients;
+        return this.patients.values();
     }
 
     public boolean exist(Doctor d) {
-        return this.doctors.containsKey(d);
+        return this.doctors.containsKey(d.name);
     }
 
     public boolean exist(Patient p) {
-        return this.patients.contains(p);
+        return this.patients.containsKey(p.name);
     }
 
+
     public Doctor removeDoctor(String name) {
-        Doctor doctor = this.doctors.keySet()
-                .stream()
-                .filter(d -> d.getName().equals(name))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
-        for (Patient patient : this.doctors.get(doctor)) {
-            this.patients.remove(patient);
+        if (!this.doctors.containsKey(name)) {
+            throw new IllegalArgumentException();
         }
-        this.doctors.remove(doctor);
+        Doctor doctor = this.doctors.get(name);
+        List<Patient> patientList = doctor.getPatients();
+        this.doctors.remove(name);
+        for (Patient patient : patientList) {
+            this.patients.remove(patient.name);
+        }
         return doctor;
     }
 
     public void changeDoctor(Doctor from, Doctor to, Patient p) {
-        boolean fromDoctorExists = this.exist(from);
-        boolean toDoctorExists = this.exist(to);
-        boolean patientExists = this.exist(p);
-
-        if (!fromDoctorExists || !toDoctorExists || !patientExists) {
+        if (!this.exist(from)) {
             throw new IllegalArgumentException();
         }
-
-        if (this.doctors.get(from).remove(p)) {
-            this.doctors.get(to).add(p);
+        if (!this.exist(to)) {
+            throw new IllegalArgumentException();
         }
+        if (!this.exist(p)) {
+            throw new IllegalArgumentException();
+        }
+        Doctor doctorFrom = this.doctors.get(from.name);
+        Doctor doctorTo = this.doctors.get(to.name);
+        doctorFrom.removePatient(p);
+        doctorTo.addPatient(p);
     }
 
-    public Collection<Doctor> getDoctorsByPopularity(int populariry) {
-        return this.doctors.keySet()
+    public Collection<Doctor> getDoctorsByPopularity(int popularity) {
+        return this.getDoctors()
                 .stream()
-                .filter(d -> d.getPopularity() == populariry)
+                .filter(doctor -> doctor.popularity == popularity)
                 .collect(Collectors.toList());
     }
 
     public Collection<Patient> getPatientsByTown(String town) {
-        return this.patients.stream()
-                .filter(p -> {
-                    String townLC = town.toLowerCase();
-                    String patientTownLC = p.getTown().toLowerCase();
-                    return townLC.equals(patientTownLC);
-                })
+        return this.getPatients()
+                .stream()
+                .filter(patient -> patient.town.equalsIgnoreCase(town))
                 .collect(Collectors.toList());
     }
 
     public Collection<Patient> getPatientsInAgeRange(int lo, int hi) {
-        return this.patients.stream()
-                .filter(p -> p.getAge() >= lo && p.getAge() <= hi)
+        return this.getPatients()
+                .stream()
+                .filter(patient -> patient.age >= lo && patient.age <= hi)
                 .collect(Collectors.toList());
     }
 
     public Collection<Doctor> getDoctorsSortedByPatientsCountDescAndNameAsc() {
-        return this.doctors
-                .entrySet()
+        return this.getDoctors()
                 .stream()
-                .sorted((f, s) -> {
-                    if (s.getValue().size() - f.getValue().size() == 0) {
-                        return f.getKey().getName().compareTo(s.getKey().getName());
-                    }
-                    return s.getValue().size() - f.getValue().size();
-                })
-                .map(Map.Entry::getKey)
+                .sorted(Comparator.comparingInt(Doctor::getPatientsCount).reversed().thenComparing(Doctor::getName))
                 .collect(Collectors.toList());
     }
 
     public Collection<Patient> getPatientsSortedByDoctorsPopularityAscThenByHeightDescThenByAge() {
-        Comparator<Patient> comparator = Comparator.comparingInt(Patient::getHeight).reversed().thenComparingInt(Patient::getAge);
-        TreeMap<Integer, List<Patient>> map = new TreeMap<>();
-        this.doctors
-                .keySet()
+        return this.getPatients()
                 .stream()
-                .sorted(Comparator.comparingInt(Doctor::getPopularity))
-                .forEach(doctor -> map.putIfAbsent(doctor.getPopularity(), new ArrayList<>()));
-
-        for (Map.Entry<Doctor, List<Patient>> doctorsList : this.doctors.entrySet()) {
-            int popularity = doctorsList.getKey().getPopularity();
-            List<Patient> patientList = map.get(popularity);
-            patientList.addAll(doctorsList.getValue());
-        }
-
-        List<Patient> patientList = new ArrayList<>();
-        for (List<Patient> value : map.values()) {
-            value.sort(comparator);
-            patientList.addAll(value);
-        }
-        return patientList;
+                .sorted((o1, o2) -> {
+                    if (o1.getDoctor().getPopularity() - o2.getDoctor().getPopularity() == 0){
+                        if (o2.getHeight() - o1.getHeight() == 0){
+                            return o1.getAge() - o2.getAge();
+                        }
+                        return o2.getHeight() - o1.getHeight();
+                    }
+                    return o1.getDoctor().getPopularity() - o2.getDoctor().getPopularity();
+                })
+                .collect(Collectors.toList());
     }
 
 }
