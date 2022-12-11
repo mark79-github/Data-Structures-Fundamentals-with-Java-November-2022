@@ -53,22 +53,12 @@ public class ProcessScheduler implements Scheduler {
 
     @Override
     public Boolean remove(int id) {
-        int index = -1;
-        for (int i = 0; i < this.data.size(); i++) {
-            if (this.data.get(i).getId() == id) {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1) {
-            throw new IllegalArgumentException();
-        }
+        int index = getIndex(id);
         this.data.remove(index);
         return true;
     }
 
-    @Override
-    public void insertBefore(int id, Task task) {
+    private int getIndex(int id) {
         int index = -1;
         for (int i = 0; i < this.data.size(); i++) {
             if (this.data.get(i).getId() == id) {
@@ -79,22 +69,18 @@ public class ProcessScheduler implements Scheduler {
         if (index == -1) {
             throw new IllegalArgumentException();
         }
+        return index;
+    }
 
+    @Override
+    public void insertBefore(int id, Task task) {
+        int index = getIndex(id);
         this.data.add(index, task);
     }
 
     @Override
     public void insertAfter(int id, Task task) {
-        int index = -1;
-        for (int i = 0; i < this.data.size(); i++) {
-            if (this.data.get(i).getId() == id) {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1) {
-            throw new IllegalArgumentException();
-        }
+        int index = getIndex(id);
         if (index + 1 < this.data.size()) {
             this.data.add(index + 1, task);
         } else {
