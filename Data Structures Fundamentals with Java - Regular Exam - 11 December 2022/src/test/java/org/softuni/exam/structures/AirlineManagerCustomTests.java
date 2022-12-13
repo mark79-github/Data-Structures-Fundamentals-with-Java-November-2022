@@ -8,7 +8,12 @@ import org.softuni.exam.entities.Flight;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static org.junit.Assert.assertEquals;
 
 public class AirlineManagerCustomTests {
 
@@ -37,7 +42,6 @@ public class AirlineManagerCustomTests {
 
     @Test(expected = IllegalArgumentException.class)
     public void testAddFlightShouldThrowExceptionWhenAirDownNotExists() {
-
         this.airlinesManager.addAirline(getRandomAirline());
         this.airlinesManager.addFlight(getRandomAirline(), getRandomFlight());
     }
@@ -66,20 +70,22 @@ public class AirlineManagerCustomTests {
 
         this.airlinesManager.deleteAirline(thirdAirline);
         Assert.assertFalse(this.airlinesManager.contains(thirdAirline));
-        int flightCount = 0;
-        for (Flight flight : this.airlinesManager.getAllFlights()) {
-            flightCount++;
-        }
-        Assert.assertEquals(3, flightCount);
+
+        Iterable<Flight> flightIterable = this.airlinesManager.getAllFlights();
+
+        Set<Flight> set = StreamSupport
+                .stream(flightIterable.spliterator(), false)
+                .collect(Collectors.toSet());
+        Assert.assertEquals(3, set.size());
 
         this.airlinesManager.deleteAirline(secondAirline);
         Assert.assertFalse(this.airlinesManager.contains(secondAirline));
         Assert.assertFalse(this.airlinesManager.contains(secondFlight));
-        flightCount = 0;
-        for (Flight flight : this.airlinesManager.getAllFlights()) {
-            flightCount++;
-        }
-        Assert.assertEquals(0, flightCount);
+
+        set = StreamSupport
+                .stream(flightIterable.spliterator(), false)
+                .collect(Collectors.toSet());
+        Assert.assertEquals(0, set.size());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -107,6 +113,7 @@ public class AirlineManagerCustomTests {
         flight.setCompleted(false);
         this.airlinesManager.addAirline(airline);
         this.airlinesManager.addFlight(airline, flight);
+
         Flight performFlight = this.airlinesManager.performFlight(airline, flight);
 
         Assert.assertTrue(performFlight.isCompleted());
@@ -133,11 +140,12 @@ public class AirlineManagerCustomTests {
             }
         }
 
-        int collectionSize = 0;
-        for (Flight flight : this.airlinesManager.getCompletedFlights()) {
-            collectionSize++;
-        }
-        Assert.assertEquals(flightsCount / 2, collectionSize);
+        Iterable<Flight> flightIterable = this.airlinesManager.getCompletedFlights();
+        Set<Flight> set = StreamSupport
+                .stream(flightIterable.spliterator(), false)
+                .collect(Collectors.toSet());
+
+        Assert.assertEquals(flightsCount / 2, set.size());
     }
 
     @Test
@@ -159,24 +167,22 @@ public class AirlineManagerCustomTests {
             }
         }
 
-        int collectionSize = 0;
-        for (Flight flight : this.airlinesManager.getAllFlights()) {
-            collectionSize++;
-        }
-        Assert.assertEquals(flightsCount, collectionSize);
+        Iterable<Flight> flightIterable = this.airlinesManager.getAllFlights();
+        Set<Flight> set = StreamSupport
+                .stream(flightIterable.spliterator(), false)
+                .collect(Collectors.toSet());
+
+        Assert.assertEquals(flightsCount, set.size());
     }
 
     @Test
     public void testGetFlightsOrderedByNumberThenByCompletionShouldReturnEmptyCollection() {
-        this.airlinesManager.addAirline(getRandomAirline());
         Iterable<Flight> flightIterable = this.airlinesManager.getFlightsOrderedByNumberThenByCompletion();
+        Set<Flight> set = StreamSupport
+                .stream(flightIterable.spliterator(), false)
+                .collect(Collectors.toSet());
 
-        int collectionSize = 0;
-        for (Flight flight : flightIterable) {
-            collectionSize++;
-        }
-
-        Assert.assertEquals(0, collectionSize);
+        assertEquals(0, set.size());
     }
 
     @Test
@@ -218,18 +224,15 @@ public class AirlineManagerCustomTests {
     @Test
     public void testGetAirlinesOrderedByRatingThenByCountOfFlightsThenByNameShouldReturnEmptyCollection() {
         Iterable<Airline> airlineIterable = this.airlinesManager.getAirlinesOrderedByRatingThenByCountOfFlightsThenByName();
+        Set<Airline> set = StreamSupport
+                .stream(airlineIterable.spliterator(), false)
+                .collect(Collectors.toSet());
 
-        int collectionSize = 0;
-        for (Airline airline : airlineIterable) {
-            collectionSize++;
-        }
-
-        Assert.assertEquals(0, collectionSize);
+        assertEquals(0, set.size());
     }
 
     @Test
     public void testGetAirlinesOrderedByRatingThenByCountOfFlightsThenByNameShouldReturnSortedCorrectlyCollection() {
-
         Airline airline_1 = new Airline(UUID.randomUUID().toString(), "101", 1.5);
         Airline airline_2 = new Airline(UUID.randomUUID().toString(), "102", 1.5);
         Airline airline_3 = new Airline(UUID.randomUUID().toString(), "103", 1.8);
@@ -259,7 +262,6 @@ public class AirlineManagerCustomTests {
 
     @Test
     public void testGetAirlinesWithFlightsFromOriginToDestinationShouldReturnEmptyCollection() {
-
         Airline randomAirline = getRandomAirline();
         Flight flight_1 = getRandomFlight();
         Flight flight_2 = getRandomFlight();
@@ -279,18 +281,15 @@ public class AirlineManagerCustomTests {
         this.airlinesManager.addFlight(randomAirline, flight_3);
 
         Iterable<Airline> airlineIterable = this.airlinesManager.getAirlinesWithFlightsFromOriginToDestination("origin", "destination");
+        Set<Airline> set = StreamSupport
+                .stream(airlineIterable.spliterator(), false)
+                .collect(Collectors.toSet());
 
-        int collectionSize = 0;
-        for (Airline airline : airlineIterable) {
-            collectionSize++;
-        }
-
-        Assert.assertEquals(0, collectionSize);
+        assertEquals(0, set.size());
     }
 
     @Test
     public void testGetAirlinesWithFlightsFromOriginToDestinationShouldReturnSortedCorrectlyCollection() {
-
         Airline airline_1 = getRandomAirline();
         Airline airline_2 = getRandomAirline();
         Airline airline_3 = getRandomAirline();
@@ -323,11 +322,10 @@ public class AirlineManagerCustomTests {
         this.airlinesManager.addFlight(airline_2, flight_4);
 
         Iterable<Airline> airlineIterable = this.airlinesManager.getAirlinesWithFlightsFromOriginToDestination("origin", "destination");
-
         int collectionSize = 0;
-        for (Airline _airline : airlineIterable) {
+        for (Airline airline : airlineIterable) {
             collectionSize++;
-            Assert.assertEquals(airline_2, _airline);
+            Assert.assertEquals(airline_2, airline);
         }
 
         Assert.assertEquals(1, collectionSize);

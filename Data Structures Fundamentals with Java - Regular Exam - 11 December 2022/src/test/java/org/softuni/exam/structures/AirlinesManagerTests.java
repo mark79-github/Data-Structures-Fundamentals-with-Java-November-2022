@@ -98,7 +98,7 @@ public class AirlinesManagerTests {
         Airline airline = getRandomAirline();
         this.airlinesManager.addAirline(getRandomAirline());
 
-        // Little bit of hacks
+        // A bit of hacks
         try {
             this.airlinesManager.deleteAirline(airline);
         } catch (IllegalArgumentException e) {
@@ -106,7 +106,7 @@ public class AirlinesManagerTests {
             return;
         }
 
-        assertTrue(false);
+        fail();
     }
 
     @Test
@@ -131,6 +131,38 @@ public class AirlinesManagerTests {
         assertTrue(set.contains(flight2));
         assertTrue(set.contains(flight3));
     }
+    private void testCompletedFlights_WithData_ShouldReturnCorrectResults() {
+        Airline airline = getRandomAirline();
+        Airline airline2 = getRandomAirline();
+
+        Flight flight1 = new Flight("a1", "a", "a", "b", false);
+        Flight flight2 = new Flight("a2", "a", "a", "b", false);
+        Flight flight3 = new Flight("a3", "a", "a", "b", true);
+
+        this.airlinesManager.addAirline(airline);
+        this.airlinesManager.addAirline(airline2);
+        this.airlinesManager.addFlight(airline, flight1);
+        this.airlinesManager.addFlight(airline, flight2);
+        this.airlinesManager.addFlight(airline2, flight3);
+        this.airlinesManager.performFlight(airline, flight1);
+
+        Set<Flight> set =
+                StreamSupport.stream(this.airlinesManager.getCompletedFlights().spliterator(), false)
+                        .collect(Collectors.toSet());
+
+        assertEquals(2, set.size());
+        assertTrue(set.contains(flight1));
+        assertTrue(set.contains(flight3));
+    }
+
+    private void testCompletedFlights_WithNoData_ShouldReturnCorrectResults() {
+        Set<Flight> set =
+                StreamSupport.stream(this.airlinesManager.getCompletedFlights().spliterator(), false)
+                        .collect(Collectors.toSet());
+
+        assertEquals(0, set.size());
+    }
+
 
     // Performance Tests
 
@@ -209,6 +241,48 @@ public class AirlinesManagerTests {
 
         long elapsedTime = stop - start;
 
+        assertTrue(elapsedTime <= 5);
+    }
+
+    @Test
+    public void testCompletedFlight_With100000Results_ShouldPassQuickly() {
+        this.performCorrectnessTesting(new InternalTest[]{
+                this::testCompletedFlights_WithData_ShouldReturnCorrectResults,
+                this::testCompletedFlights_WithNoData_ShouldReturnCorrectResults
+        });
+
+        int count = 100000;
+
+        Airline airline = getRandomAirline();
+        Airline airline2 = getRandomAirline();
+        Airline airline3 = getRandomAirline();
+        this.airlinesManager.addAirline(airline);
+        this.airlinesManager.addAirline(airline2);
+        this.airlinesManager.addAirline(airline3);
+
+        for (int i = 0; i < count; i++) {
+            Flight flightToAdd = new Flight(i + "", i + "number", i + "origin", i + "destination", false);
+
+            if (i < 10000) {
+                this.airlinesManager.addFlight(airline, flightToAdd);
+            } else if (i < count / 2) {
+                flightToAdd.setCompleted(true);
+                this.airlinesManager.addFlight(airline2, flightToAdd);
+            } else {
+                flightToAdd.setCompleted(true);
+                this.airlinesManager.addFlight(airline3, flightToAdd);
+            }
+        }
+
+        long start = System.currentTimeMillis();
+
+        this.airlinesManager.getCompletedFlights();
+
+        long stop = System.currentTimeMillis();
+
+        long elapsedTime = stop - start;
+
+        System.out.println("testCompletedFlight_With100000Results_ShouldPassQuickly() : elapsedTime <= 5 : " + elapsedTime);
         assertTrue(elapsedTime <= 5);
     }
 }
