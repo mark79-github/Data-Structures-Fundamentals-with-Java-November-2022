@@ -158,7 +158,6 @@ public class OlympicsImplPerformanceTest {
         long usedMemoryInMB = (runtime.totalMemory() - runtime.freeMemory() - usedMemoryBefore) / (1024 * 1024);
 
         Assert.assertTrue(usedMemoryInMB > 100 && usedMemoryInMB < 200);
-
     }
 
 
@@ -253,7 +252,7 @@ public class OlympicsImplPerformanceTest {
     }
 
 
-    @Test(timeout = 1000)
+    @Test
     public void disqualify_10_000_competitors_with_1_000_competitions() {
         int initialCompetitorsCount = 10000;
         int initialCompetitionsCount = 1000;
@@ -285,7 +284,7 @@ public class OlympicsImplPerformanceTest {
         for (Competition c : competitions) {
             count += this.olympics.getCompetition(c.getId()).getCompetitors().size();
         }
-        Assert.assertEquals("Invalid competitors count", count, 9999000);
+        Assert.assertEquals("Invalid competitors count", 9999000, count);
 
     }
 
@@ -318,7 +317,7 @@ public class OlympicsImplPerformanceTest {
         for (Competition c : competitions) {
             count += this.olympics.getCompetition(c.getId()).getCompetitors().size();
         }
-        Assert.assertEquals("Invalid competitors count", count, 0);
+        Assert.assertEquals("Invalid competitors count", 0, count);
 
     }
 
@@ -352,7 +351,7 @@ public class OlympicsImplPerformanceTest {
         for (Competition c : competitions) {
             count += this.olympics.getCompetition(c.getId()).getCompetitors().size();
         }
-        Assert.assertEquals("Invalid competitors count", count, 0);
+        Assert.assertEquals("Invalid competitors count", 0, count);
     }
 
     @Test(timeout = 100)
@@ -585,5 +584,21 @@ public class OlympicsImplPerformanceTest {
         long stop = System.currentTimeMillis();
         long executionTimeInMillis = stop - start;
         Assert.assertTrue(executionTimeInMillis <= 110);
+    }
+
+    @Test
+    public void addCompetitor_500_000_competitors_memory_usage() {
+
+        List<Competitor> competitors = this.inputGenerator.generateCompetitors(500000);
+
+        Runtime runtime = Runtime.getRuntime();
+        long usedMemoryBefore = runtime.totalMemory() - runtime.freeMemory();
+
+        for (Competitor competitor : competitors) {
+            this.olympics.addCompetitor(competitor.getId(), competitor.getName());
+        }
+        long usedMemoryInMB = (Math.abs(runtime.totalMemory() - runtime.freeMemory() - usedMemoryBefore)) / (1024 * 1024);
+
+        Assert.assertTrue(usedMemoryInMB > 50 && usedMemoryInMB < 120);
     }
 }

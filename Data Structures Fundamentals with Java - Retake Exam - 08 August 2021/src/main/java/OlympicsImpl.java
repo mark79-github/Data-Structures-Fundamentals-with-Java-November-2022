@@ -1,25 +1,23 @@
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class OlympicsImpl implements Olympics {
 
     private final Map<Integer, Competition> competitions;
-    private final Map<Integer, Competitor> competitors;
+    private final Map<String, Competitor> competitors;
 
     public OlympicsImpl() {
-        this.competitors = new TreeMap<>();
+        this.competitors = new LinkedHashMap<>();
         this.competitions = new HashMap<>();
     }
 
 
     @Override
     public void addCompetitor(int id, String name) {
-        if (this.competitors.containsKey(id))
+        if (this.competitors.containsKey(String.valueOf(id))) {
             throw new IllegalArgumentException();
-        this.competitors.put(id, new Competitor(id, name));
+        }
+        this.competitors.put(String.valueOf(id), new Competitor(id, name));
     }
 
     @Override
@@ -62,14 +60,17 @@ public class OlympicsImpl implements Olympics {
                 .values()
                 .stream()
                 .filter(c -> c.getTotalScore() > min && c.getTotalScore() <= max)
+                .sorted(Competitor::compareTo)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Iterable<Competitor> getByName(String name) {
-        List<Competitor> list = this.competitors.values()
+        List<Competitor> list = this.competitors
+                .values()
                 .stream()
                 .filter(c -> c.getName().equals(name))
+                .sorted(Competitor::compareTo)
                 .collect(Collectors.toList());
         if (list.isEmpty()) {
             throw new IllegalArgumentException();
@@ -86,6 +87,7 @@ public class OlympicsImpl implements Olympics {
                     int competitorNameLength = c.getName().length();
                     return competitorNameLength >= minLength && competitorNameLength <= maxLength;
                 })
+                .sorted(Competitor::compareTo)
                 .collect(Collectors.toList());
     }
 
@@ -114,9 +116,9 @@ public class OlympicsImpl implements Olympics {
     }
 
     private Competitor getCompetitor(int id) {
-        if (!this.competitors.containsKey(id)) {
+        if (!this.competitors.containsKey(String.valueOf(id))) {
             throw new IllegalArgumentException();
         }
-        return this.competitors.get(id);
+        return this.competitors.get(String.valueOf(id));
     }
 }
