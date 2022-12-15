@@ -1,6 +1,9 @@
 package vaccopsjava;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VaccOps implements IVaccOps {
@@ -27,8 +30,8 @@ public class VaccOps implements IVaccOps {
         if (this.exist(p)) {
             throw new IllegalArgumentException();
         }
-        this.doctors.get(d.name).addPatient(p);
         p.setDoctor(d);
+        this.doctors.get(d.name).addPatient(p);
         this.patients.put(p.name, p);
     }
 
@@ -54,11 +57,8 @@ public class VaccOps implements IVaccOps {
             throw new IllegalArgumentException();
         }
         Doctor doctor = this.doctors.get(name);
-        List<Patient> patientList = doctor.getPatients();
+        doctor.getPatients().forEach(patient -> this.patients.remove(patient.name));
         this.doctors.remove(name);
-        for (Patient patient : patientList) {
-            this.patients.remove(patient.name);
-        }
         return doctor;
     }
 
@@ -110,8 +110,8 @@ public class VaccOps implements IVaccOps {
         return this.getPatients()
                 .stream()
                 .sorted((o1, o2) -> {
-                    if (o1.getDoctor().getPopularity() - o2.getDoctor().getPopularity() == 0){
-                        if (o2.getHeight() - o1.getHeight() == 0){
+                    if (o1.getDoctor().getPopularity() - o2.getDoctor().getPopularity() == 0) {
+                        if (o2.getHeight() - o1.getHeight() == 0) {
                             return o1.getAge() - o2.getAge();
                         }
                         return o2.getHeight() - o1.getHeight();

@@ -15,14 +15,14 @@ public class CouponOperation implements ICouponOperation {
     }
 
     public void registerSite(Website w) {
-        if (this.websites.containsKey(w)) {
+        if (this.exist(w)) {
             throw new IllegalArgumentException();
         }
         this.websites.put(w, new ArrayList<>());
     }
 
     public void addCoupon(Website w, Coupon c) {
-        if (!this.websites.containsKey(w)) {
+        if (!this.exist(w)) {
             throw new IllegalArgumentException();
         }
         if (this.websites.get(w).contains(c)) {
@@ -38,31 +38,19 @@ public class CouponOperation implements ICouponOperation {
                 .filter(w -> w.getDomain().equals(domain))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
-        for (Coupon coupon : this.websites.get(website)) {
-            this.coupons.remove(coupon);
-        }
+        this.websites.get(website).forEach(this.coupons::remove);
         this.websites.remove(website);
         return website;
     }
 
     public Coupon removeCoupon(String code) {
-        Coupon coupon = null;
-        for (Coupon current : this.coupons) {
-            if (current.getCode().equals(code)) {
-                coupon = current;
-                break;
-            }
-        }
-        if (coupon == null) {
-            throw new IllegalArgumentException();
-        }
+        Coupon coupon = this.coupons
+                .stream()
+                .filter(c -> c.getCode().equals(code))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        this.websites.forEach((key, value) -> value.remove(coupon));
         this.coupons.remove(coupon);
-        for (Map.Entry<Website, List<Coupon>> entry : this.websites.entrySet()) {
-            if (entry.getValue().contains(coupon)) {
-                entry.getValue().remove(coupon);
-                break;
-            }
-        }
         return coupon;
     }
 
@@ -79,18 +67,17 @@ public class CouponOperation implements ICouponOperation {
     }
 
     public Collection<Coupon> getCouponsForWebsite(Website w) {
-        if (!this.websites.containsKey(w)) {
+        if (!this.exist(w)) {
             throw new IllegalArgumentException();
         }
         return new ArrayList<>(this.websites.get(w));
     }
 
     public void useCoupon(Website w, Coupon c) {
-        if (!this.websites.containsKey(w)) {
+        if (!this.exist(w)) {
             throw new IllegalArgumentException();
         }
-        boolean contains = this.websites.get(w).contains(c);
-        if (!contains) {
+        if (!this.websites.get(w).contains(c)) {
             throw new IllegalArgumentException();
         }
         this.websites.get(w).remove(c);

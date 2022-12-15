@@ -1,4 +1,7 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OlympicsImpl implements Olympics {
@@ -30,8 +33,8 @@ public class OlympicsImpl implements Olympics {
 
     @Override
     public void compete(int competitorId, int competitionId) {
-        Competitor competitor = getCompetitor(competitorId);
-        Competition competition = getCompetition(competitionId);
+        Competitor competitor = this.getCompetitor(competitorId);
+        Competition competition = this.getCompetition(competitionId);
 
         competition.getCompetitors().add(competitor);
         int competitionScore = competition.getScore();
@@ -41,8 +44,8 @@ public class OlympicsImpl implements Olympics {
 
     @Override
     public void disqualify(int competitionId, int competitorId) {
-        Competition competition = getCompetition(competitionId);
-        Competitor competitor = getCompetitor(competitorId);
+        Competition competition = this.getCompetition(competitionId);
+        Competitor competitor = this.getCompetitor(competitorId);
 
         if (!competition.getCompetitors().contains(competitor)) {
             throw new IllegalArgumentException();
@@ -66,8 +69,7 @@ public class OlympicsImpl implements Olympics {
 
     @Override
     public Iterable<Competitor> getByName(String name) {
-        List<Competitor> list = this.competitors
-                .values()
+        List<Competitor> list = this.competitors.values()
                 .stream()
                 .filter(c -> c.getName().equals(name))
                 .sorted(Competitor::compareTo)
@@ -80,20 +82,16 @@ public class OlympicsImpl implements Olympics {
 
     @Override
     public Iterable<Competitor> searchWithNameLength(int minLength, int maxLength) {
-        return this.competitors
-                .values()
+        return this.competitors.values()
                 .stream()
-                .filter(c -> {
-                    int competitorNameLength = c.getName().length();
-                    return competitorNameLength >= minLength && competitorNameLength <= maxLength;
-                })
+                .filter(c -> c.getName().length() >= minLength && c.getName().length() <= maxLength)
                 .sorted(Competitor::compareTo)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Boolean contains(int competitionId, Competitor comp) {
-        Competition competition = getCompetition(competitionId);
+        Competition competition = this.getCompetition(competitionId);
         return competition.getCompetitors().contains(comp);
     }
 

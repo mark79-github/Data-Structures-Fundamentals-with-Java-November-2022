@@ -8,7 +8,7 @@ public class BoardImpl implements Board {
     private final Map<String, Card> cards;
 
     public BoardImpl() {
-        cards = new HashMap<>();
+        this.cards = new HashMap<>();
     }
 
     @Override

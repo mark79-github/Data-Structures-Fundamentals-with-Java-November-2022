@@ -15,68 +15,65 @@ public class BarberShopImpl implements BarberShop {
 
     @Override
     public void addBarber(Barber b) {
-        if (exist(b)) {
+        if (this.exist(b)) {
             throw new IllegalArgumentException();
         }
-        barbers.put(b, new ArrayList<>());
+        this.barbers.put(b, new ArrayList<>());
     }
 
     @Override
     public void addClient(Client c) {
-        if (exist(c)) {
+        if (this.exist(c)) {
             throw new IllegalArgumentException();
         }
-        clients.add(c);
+        this.clients.add(c);
     }
 
     @Override
     public boolean exist(Barber b) {
-        return barbers.containsKey(b);
+        return this.barbers.containsKey(b);
     }
 
     @Override
     public boolean exist(Client c) {
-        return clients.contains(c);
+        return this.clients.contains(c);
     }
 
     @Override
     public Collection<Barber> getBarbers() {
-        return new ArrayList<>(barbers.keySet());
+        return new ArrayList<>(this.barbers.keySet());
     }
 
     @Override
     public Collection<Client> getClients() {
-        return new ArrayList<>(clients);
+        return new ArrayList<>(this.clients);
     }
 
     @Override
     public void assignClient(Barber b, Client c) {
-        if (!exist(b) || !exist(c)) {
+        if (!this.exist(b) || !this.exist(c)) {
             throw new IllegalArgumentException();
         }
         if (c.barber != null) {
             Barber barber = c.barber;
             this.barbers.get(barber).remove(c);
         }
-        barbers.get(b).add(c);
         c.barber = b;
+        this.barbers.get(b).add(c);
     }
 
     @Override
     public void deleteAllClientsFrom(Barber b) {
-        if (!exist(b)) {
+        if (!this.exist(b)) {
             throw new IllegalArgumentException();
         }
-        List<Client> clientList = barbers.get(b);
-        for (Client client : clientList) {
-            clients.remove(client);
-        }
-        barbers.put(b, new ArrayList<>());
+        this.barbers.get(b).forEach(this.clients::remove);
+        this.barbers.put(b, new ArrayList<>());
     }
 
     @Override
     public Collection<Client> getClientsWithNoBarber() {
-        return clients
+        return this.clients
                 .stream()
                 .filter(client -> client.barber == null)
                 .collect(Collectors.toList());
@@ -84,7 +81,8 @@ public class BarberShopImpl implements BarberShop {
 
     @Override
     public Collection<Barber> getAllBarbersSortedWithClientsCountDesc() {
-        return barbers.entrySet().stream()
+        return this.barbers.entrySet()
+                .stream()
                 .sorted((o1, o2) -> o2.getValue().size() - o1.getValue().size())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -92,7 +90,7 @@ public class BarberShopImpl implements BarberShop {
 
     @Override
     public Collection<Barber> getAllBarbersSortedWithStarsDescendingAndHaircutPriceAsc() {
-        return barbers.keySet()
+        return this.barbers.keySet()
                 .stream()
                 .sorted((o1, o2) -> {
                     if (o2.stars - o1.stars == 0) {
@@ -105,7 +103,7 @@ public class BarberShopImpl implements BarberShop {
 
     @Override
     public Collection<Client> getClientsSortedByAgeDescAndBarbersStarsDesc() {
-        return clients
+        return this.clients
                 .stream()
                 .filter(client -> client.barber != null)
                 .sorted((o1, o2) -> {

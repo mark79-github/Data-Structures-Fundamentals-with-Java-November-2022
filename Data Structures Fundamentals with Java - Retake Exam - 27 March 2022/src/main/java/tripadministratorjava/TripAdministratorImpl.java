@@ -8,10 +8,9 @@ public class TripAdministratorImpl implements TripAdministrator {
     private final Map<Company, List<Trip>> companies;
     private final Set<Trip> trips;
 
-
     public TripAdministratorImpl() {
-        companies = new LinkedHashMap<>();
-        trips = new LinkedHashSet<>();
+        this.companies = new LinkedHashMap<>();
+        this.trips = new LinkedHashSet<>();
     }
 
     @Override
@@ -19,21 +18,20 @@ public class TripAdministratorImpl implements TripAdministrator {
         if (exist(c)) {
             throw new IllegalArgumentException();
         }
-        companies.put(c, new LinkedList<>());
+        this.companies.put(c, new LinkedList<>());
     }
 
     @Override
     public void addTrip(Company c, Trip t) {
-        if (!exist(c)) {
+        if (!this.exist(c)) {
             throw new IllegalArgumentException();
         }
-        if (trips.contains(t)) {
+        if (this.exist(t)) {
             throw new IllegalArgumentException();
         }
         if (c.tripOrganizationLimit == companies.get(c).size()) {
             throw new IllegalArgumentException();
-        }
-        if (c.tripOrganizationLimit > companies.get(c).size()) {
+        } else if (c.tripOrganizationLimit > companies.get(c).size()) {
             companies.get(c).add(t);
             trips.add(t);
         }
@@ -41,69 +39,66 @@ public class TripAdministratorImpl implements TripAdministrator {
 
     @Override
     public boolean exist(Company c) {
-        return companies.containsKey(c);
+        return this.companies.containsKey(c);
     }
 
     @Override
     public boolean exist(Trip t) {
-        return trips.contains(t);
+        return this.trips.contains(t);
     }
 
     @Override
     public void removeCompany(Company c) {
-        if (!exist(c)) {
+        if (!this.exist(c)) {
             throw new IllegalArgumentException();
         }
-        List<Trip> tripList = companies.get(c);
-        companies.remove(c);
-        for (Trip trip : tripList) {
-            long count = companies.entrySet()
+        List<Trip> companyTrips = this.companies.get(c);
+        this.companies.remove(c);
+        companyTrips.forEach(trip -> {
+            boolean tripExists = this.companies.values()
                     .stream()
-                    .filter(entry -> entry.getValue().contains(trip))
-                    .count();
-            if (count == 0) {
-                trips.remove(trip);
+                    .anyMatch(tripList -> tripList.contains(trip));
+            if (!tripExists) {
+                this.trips.remove(trip);
             }
-        }
+        });
     }
 
     @Override
     public Collection<Company> getCompanies() {
-        return new LinkedList<>(companies.keySet());
+        return new LinkedList<>(this.companies.keySet());
     }
 
     @Override
     public Collection<Trip> getTrips() {
-        return trips;
+        return this.trips;
     }
 
     @Override
     public void executeTrip(Company c, Trip t) {
-        if (!exist(c) || !exist(t)) {
+        if (!this.exist(c) || !this.exist(t)) {
             throw new IllegalArgumentException();
         }
-        if (!companies.get(c).contains(t)) {
+        if (!this.companies.get(c).contains(t)) {
             throw new IllegalArgumentException();
         }
-        companies.get(c).remove(t);
+        this.companies.get(c).remove(t);
         if (!tripExists(t)) {
-            trips.remove(t);
+            this.trips.remove(t);
         }
     }
 
     private boolean tripExists(Trip trip) {
-        for (Map.Entry<Company, List<Trip>> company : companies.entrySet()) {
-            List<Trip> tripList = company.getValue();
-            if (tripList.contains(trip)) {
-                return true;
-            }
-        }
-        return false;
+        return this.companies
+                .values()
+                .stream()
+                .anyMatch(entry -> entry.contains(trip));
     }
 
     @Override
     public Collection<Company> getCompaniesWithMoreThatNTrips(int n) {
-        return companies.entrySet()
+        return this.companies
+                .entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().size() > n)
                 .map(Map.Entry::getKey)
@@ -112,14 +107,16 @@ public class TripAdministratorImpl implements TripAdministrator {
 
     @Override
     public Collection<Trip> getTripsWithTransportationType(Transportation t) {
-        return trips.stream()
+        return this.trips
+                .stream()
                 .filter(trip -> trip.transportation.equals(t))
                 .collect(Collectors.toList());
     }
 
     @Override
     public Collection<Trip> getAllTripsInPriceRange(int lo, int hi) {
-        return trips.stream()
+        return this.trips
+                .stream()
                 .filter(trip -> trip.price >= lo && trip.price <= hi)
                 .collect(Collectors.toList());
     }
